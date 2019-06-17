@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">InstagramClone</string>
+
+    <string name="parse_app_id">MWFV673egF5P3AP</string>
+    <string name="parse_client_key">Za85hu9uMZhVvpM</string>
+    <string name="configuracoes">Configurações</string>
+    <string name="sair">Sair</string>
+    <string name="compartilhar">Compartilhar</string>
 </resources>
