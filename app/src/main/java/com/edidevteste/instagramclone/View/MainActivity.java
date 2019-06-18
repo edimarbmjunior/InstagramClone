@@ -2,12 +2,16 @@ package com.edidevteste.instagramclone.View;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TabItem;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.edidevteste.instagramclone.Adapter.TabAdapter;
 import com.edidevteste.instagramclone.R;
 import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
@@ -179,8 +183,18 @@ public class MainActivity extends AppCompatActivity {
     private void inicializar(){
         toolbarPrincipal = findViewById(R.id.toolbarPrincipal);
         toolbarPrincipal.setLogo(R.drawable.instagramlogo);
-
         setSupportActionBar(toolbarPrincipal);
+
+        int[] TAB_TITLES = new int[]{R.string.tab_1, R.string.tab_2};
+
+        TabAdapter tabAdapter = new TabAdapter(getSupportFragmentManager(), this, TAB_TITLES);
+        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager.setAdapter(tabAdapter);
+        TabLayout tabs = findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
+        tabs.getTabAt(0).setIcon(R.drawable.ic_home_black);
+        tabs.getTabAt(1).setIcon(R.drawable.ic_people_black);
+
     }
 
     private void sair(){
