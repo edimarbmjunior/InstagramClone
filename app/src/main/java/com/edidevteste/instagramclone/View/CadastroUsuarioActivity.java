@@ -3,6 +3,7 @@ package com.edidevteste.instagramclone.View;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,10 +11,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.edidevteste.instagramclone.R;
+import com.edidevteste.instagramclone.Security.Base64Custom;
+import com.edidevteste.instagramclone.Security.SecurityPreferences;
 import com.edidevteste.instagramclone.Util.ParsesErrorUtil;
+import com.edidevteste.instagramclone.Util.UtilContantes;
 import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class CadastroUsuarioActivity extends AppCompatActivity {
 
@@ -23,6 +30,8 @@ public class CadastroUsuarioActivity extends AppCompatActivity {
     private TextView textViewLoginCrieConta;
     private Button buttonCadastrar;
     private String msgErro = "";
+
+    private SecurityPreferences securityPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +48,8 @@ public class CadastroUsuarioActivity extends AppCompatActivity {
         textViewCadastroSenha = findViewById(R.id.textViewCadastroSenha);
         textViewLoginCrieConta = findViewById(R.id.textViewLoginCrieConta);
         buttonCadastrar = findViewById(R.id.buttonCadastrar);
+
+        securityPreferences = new SecurityPreferences(getApplicationContext());
     }
 
     private void setLiteners(){
@@ -72,13 +83,23 @@ public class CadastroUsuarioActivity extends AppCompatActivity {
         ParseUser usuario = new ParseUser();
         usuario.setUsername(textViewCadastroNome.getText().toString());
         usuario.setEmail(textViewCadastroEmail.getText().toString());
-        usuario.setPassword(textViewCadastroSenha.getText().toString());
+        usuario.setPassword(Base64Custom.CodificaTo64(textViewCadastroSenha.getText().toString()));
 
         usuario.signUpInBackground(new SignUpCallback() {
             @Override
             public void done(ParseException e) {
                 if(e==null){
                     Toast.makeText(getApplicationContext(), "Cadastrado com sucesso", Toast.LENGTH_LONG).show();
+
+                    HashMap<String, String> dadosSalvar = new HashMap<>();
+                    String Session = ParseUser.getCurrentUser().getObjectId();
+                    dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna1(), Session);
+                    dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna2(), ParseUser.getCurrentUser().getUsername());
+                    dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna3(), ParseUser.getCurrentUser().getEmail());
+                    dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna4(), Base64Custom.CodificaTo64(textViewCadastroSenha.getText().toString()));
+
+                    securityPreferences.salvarValoresPreferences(dadosSalvar);
+
                     ParseUser.logOut();
                     abrirLoginUsuario();
                 }else{

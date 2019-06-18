@@ -1,7 +1,13 @@
 package com.edidevteste.instagramclone.View;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabItem;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -10,15 +16,36 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.edidevteste.instagramclone.Adapter.TabAdapter;
+import com.edidevteste.instagramclone.Fragment.InicioFragment;
 import com.edidevteste.instagramclone.R;
+import com.edidevteste.instagramclone.Security.SecurityPreferences;
+import com.edidevteste.instagramclone.Util.UtilContantes;
+import com.edidevteste.instagramclone.Util.UtilGenerico;
 import com.parse.ParseAnalytics;
+import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseObject;
 import com.parse.ParseUser;
+import com.parse.ProgressCallback;
+import com.parse.SaveCallback;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
     private Toolbar toolbarPrincipal;
+    private ViewPager viewPager;
+
+    private SecurityPreferences sharedPreferences;
+
+    private static final int IMAGE_VIEW_ACTIVITY_REQUEST_CODE   = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.itemMenuComprtilhar:
                 Log.i("Menu", "Selecionou Compartilhar");
+                compartilharFoto();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -188,18 +216,106 @@ public class MainActivity extends AppCompatActivity {
         int[] TAB_TITLES = new int[]{R.string.tab_1, R.string.tab_2};
 
         TabAdapter tabAdapter = new TabAdapter(getSupportFragmentManager(), this, TAB_TITLES);
-        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(tabAdapter);
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
         tabs.getTabAt(0).setIcon(R.drawable.ic_home_black);
         tabs.getTabAt(1).setIcon(R.drawable.ic_people_black);
-
+        tabs.setBackgroundResource(R.color.colorPrimary);
+        sharedPreferences = new SecurityPreferences(getApplicationContext());
     }
 
     private void sair(){
         ParseUser.logOut();
+        ArrayList<String> listaRemover = new ArrayList<>();
+        listaRemover.add(UtilContantes.USUARIO_DADOS.getColuna1());
+        listaRemover.add(UtilContantes.USUARIO_DADOS.getColuna2());
+        listaRemover.add(UtilContantes.USUARIO_DADOS.getColuna3());
+        listaRemover.add(UtilContantes.USUARIO_DADOS.getColuna4());
+        sharedPreferences.removerValoresPreferencesUsuario(listaRemover);
         startActivity(new Intent(getApplicationContext(), LoginActivity.class));
         finish();
+    }
+
+    private void compartilharFoto(){
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, IMAGE_VIEW_ACTIVITY_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.i("Menu", "Foi escolhida a Foto");
+
+        if(requestCode == IMAGE_VIEW_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && data != null){
+
+            Boolean verificaConexao = UtilGenerico.isConected(getApplicationContext());
+            String ObejectIdUser = ParseUser.getCurrentUser().getObjectId();
+
+            Log.i("Menu", "Verificando a conexão com a internet " + verificaConexao);
+            Log.i("Menu", "Identificação: " + ObejectIdUser);
+            if(verificaConexao && ObejectIdUser!= null){
+                //Recupera local do recurso
+                Uri localImagemSelecionada = data.getData();
+
+                //Recupera a imagem do local que foi selecionado
+                try {
+                    Bitmap imagem = MediaStore.Images.Media.getBitmap(getContentResolver(), localImagemSelecionada);
+
+                    //Converter para PNG
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    imagem.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+                    //Cria um array de bytes
+                    byte[] bytesArrays = stream.toByteArray();
+
+                    //Criar arquivo no formato do Parse
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("ddmmaaaahhmmss");
+                    String nomeImagem = dateFormat.format(new Date());
+                    final ParseFile parseFile = new ParseFile(nomeImagem+"imagem.png", bytesArrays);
+
+                    parseFile.saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if(e!=null){
+                                Log.e("Menu", "Error ao postar imagem(ParseFile), Coderro: " + e.getCode() + "/ Msg: " + e.getMessage());
+                                Toast.makeText(getApplicationContext(), "Erro ao postar a imagem! Tente novamente!", Toast.LENGTH_LONG).show();
+                            }else{
+                                //Monta o objeto Parse para salvar na imagem
+                                ParseObject parseObject = new ParseObject("Imagem");
+                                parseObject.put("keyUser", ParseUser.getCurrentUser().getObjectId());
+                                parseObject.put("imagem", parseFile);
+
+                                //Salvar dados
+                                parseObject.saveInBackground(new SaveCallback() {
+                                    @Override
+                                    public void done(ParseException e) {
+                                        if(e==null){
+                                            Toast.makeText(getApplicationContext(), "Sua imagem foi postada", Toast.LENGTH_LONG).show();
+
+                                            //Atualizar o Fragment
+                                            TabAdapter tabAdapterNovo = (TabAdapter) viewPager.getAdapter();
+                                            InicioFragment inicioFragment = (InicioFragment) tabAdapterNovo.getFragment(0);
+                                            inicioFragment.atualizaPostagens();
+                                        }else {
+                                            Log.e("Menu", "Error ao postar imagem(ParseObject), Coderro: " + e.getCode() + "/ Msg: " + e.getMessage());
+                                            Toast.makeText(getApplicationContext(), "Erro ao postar a imagem! Tente novamente!", Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "Erro no processamento da imagem! Tente Novamente!", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                    Log.e("Menu", "Erro no processamento da imagem, " + e);
+                }
+            }else{
+                Toast.makeText(getApplicationContext(), "Sem conexão com a internet!", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }
