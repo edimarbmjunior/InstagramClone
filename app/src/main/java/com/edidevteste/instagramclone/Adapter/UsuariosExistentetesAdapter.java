@@ -47,7 +47,9 @@ public class UsuariosExistentetesAdapter extends ArrayAdapter<ParseUser> {
             //Metodo especifico para recuperar arquivo
             //parseObject.getParseFile("imagem");
 
-            textViewListaUsuario.setText(parseUser.getUsername());
+            String nameUser = parseUser.getUsername();
+
+            textViewListaUsuario.setText(nameUser);
         }
 
         return view;

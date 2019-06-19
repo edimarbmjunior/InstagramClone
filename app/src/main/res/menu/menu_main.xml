@@ -14,12 +14,12 @@
     <item android:id="@+id/itemMenuComprtilhar"
         android:title="@string/compartilhar"
         android:icon="@drawable/ic_action_camera"
-        android:orderInCategory="300"
+        android:orderInCategory="200"
         app:showAsAction="ifRoom"/>
 
     <item android:id="@+id/itemMenuConfiguracoes"
           android:title="@string/configuracoes"
-          android:orderInCategory="200"
+          android:orderInCategory="100"
           app:showAsAction="never"/>
 
     <item android:id="@+id/itemMenuSair"

@@ -74,8 +74,8 @@ public class CadastroUsuarioActivity extends AppCompatActivity {
     }
 
     public void abrirLoginUsuario(){
-        startActivity(new Intent(getApplicationContext(), LoginActivity.class));
         finish();
+        startActivity(new Intent(getApplicationContext(), LoginActivity.class));
     }
 
     private void cadastrarUsuario(){

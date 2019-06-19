@@ -3,7 +3,9 @@ package com.edidevteste.instagramclone.Util;
 public enum UtilContantes {
 
     USUARIO_DADOS ("USUARIO_ID", "USUARIO_NOME", "USUARIO_EMAIL", "USUARIO_SENHA"),
-    SECURITY_PREFERENCES ("INSTAGRAMCLONEFUNCTIONAL");
+    SECURITY_PREFERENCES ("INSTAGRAMCLONEFUNCTIONAL"),
+    REQUEST_SCOPE_PERMISSOES("1"),
+    REQUEST_SCOPE_IMAGE_VIEW_ACTIVITY("101");
 
     private String coluna1;
     private String coluna2;
