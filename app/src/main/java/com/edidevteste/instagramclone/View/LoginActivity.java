@@ -2,7 +2,6 @@ package com.edidevteste.instagramclone.View;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,11 +13,15 @@ import android.widget.Toast;
 
 import com.edidevteste.instagramclone.R;
 import com.edidevteste.instagramclone.Security.Base64Custom;
+import com.edidevteste.instagramclone.Security.Permissao;
 import com.edidevteste.instagramclone.Security.SecurityPreferences;
+import com.edidevteste.instagramclone.Util.ParsesErrorUtil;
 import com.edidevteste.instagramclone.Util.UtilContantes;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseUser;
+
+import java.util.HashMap;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -31,15 +34,18 @@ public class LoginActivity extends AppCompatActivity {
     SecurityPreferences sharedPreference;
 
     private String[] permissoesNecessarias = new String[]{
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.READ_SMS,
-            Manifest.permission.INTERNET
+            Manifest.permission.INTERNET,
+            Manifest.permission.READ_EXTERNAL_STORAGE
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        //RequestCode - Para verificar se a sua activity tem permissão, cada activity de seu request
+        Integer requestCode = new Integer(UtilContantes.REQUEST_SCOPE_PERMISSOES.getColuna1());
+        Permissao.validaPermissoes(requestCode, this, permissoesNecessarias);
 
         inicializar();
         setListeners();
@@ -85,6 +91,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void verificaLogin(String usuarioLogin, String usuarioSenha){
+        final String[] valores = {usuarioLogin, usuarioSenha};
 
         if(usuarioLogin.isEmpty() || usuarioSenha.isEmpty()){
             Toast.makeText(getApplicationContext(), "Preencha corretamente os dados.", Toast.LENGTH_LONG).show();
@@ -94,19 +101,35 @@ public class LoginActivity extends AppCompatActivity {
                 public void done(ParseUser user, ParseException e) {
                     if(e==null){
                         Toast.makeText(getApplicationContext(), "Sucesso ao logar.", Toast.LENGTH_LONG).show();
+                        sharedPreferences(valores[0], valores[1]);
                         abrirMain();
                     }else{
-                        Toast.makeText(getApplicationContext(), "Error ao Logar.", Toast.LENGTH_LONG).show();
-                        Log.i("ErrorLogin", "Error(Logar)-Code: >" + e.getCode());
-                        Log.i("ErrorLogin", "Error(Logar)-Message: >" + e.getMessage());
+                        String msgErroParse = new ParsesErrorUtil().getErroParse(e.getCode());
+                        if(msgErroParse!=null&&msgErroParse.length()>1){
+                            Toast.makeText(getApplicationContext(), msgErroParse, Toast.LENGTH_LONG).show();
+                        }else{
+                            Toast.makeText(getApplicationContext(), "Error ao Logar - Cod: " +e.getCode() + " / Msg: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                        Log.e("ErrorLogin", "Error(Logar)-Code: >" + e.getCode());
+                        Log.e("ErrorLogin", "Error(Logar)-Message: >" + e.getMessage());
                     }
                 }
             });
         }
     }
 
+    private void sharedPreferences(String usuarioLogin, String usuarioSenha){
+        HashMap<String, String> dadosSalvar = new HashMap<>();
+        String session = ParseUser.getCurrentUser().getObjectId();
+        dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna1(), session);
+        dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna2(), ParseUser.getCurrentUser().getUsername());
+        dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna3(), usuarioLogin);
+        dadosSalvar.put(UtilContantes.USUARIO_DADOS.getColuna4(), usuarioSenha);
+        sharedPreference.salvarValoresPreferences(dadosSalvar);
+    }
+
     private void abrirMain(){
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
         finish();
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 }

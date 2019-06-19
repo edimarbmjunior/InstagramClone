@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TabItem;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -44,8 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
 
     private SecurityPreferences sharedPreferences;
+    private AlertDialog alertDialog;
 
-    private static final int IMAGE_VIEW_ACTIVITY_REQUEST_CODE   = 101;
+    private static final int IMAGE_VIEW_ACTIVITY_REQUEST_CODE = new Integer(UtilContantes.REQUEST_SCOPE_IMAGE_VIEW_ACTIVITY.getColuna1());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -250,6 +252,9 @@ public class MainActivity extends AppCompatActivity {
 
         if(requestCode == IMAGE_VIEW_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && data != null){
 
+            /*alertDialog = new UtilGenerico().AlertDialog(getApplicationContext());
+            alertDialog.show();*/
+            UtilGenerico.msgGenericaLong(getApplicationContext(), "Por favor espera a mensagem de fim do processo!");
             Boolean verificaConexao = UtilGenerico.isConected(getApplicationContext());
             String ObejectIdUser = ParseUser.getCurrentUser().getObjectId();
 
@@ -279,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void done(ParseException e) {
                             if(e!=null){
+                                alertDialog.dismiss();
                                 Log.e("Menu", "Error ao postar imagem(ParseFile), Coderro: " + e.getCode() + "/ Msg: " + e.getMessage());
                                 Toast.makeText(getApplicationContext(), "Erro ao postar a imagem! Tente novamente!", Toast.LENGTH_LONG).show();
                             }else{
@@ -292,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void done(ParseException e) {
                                         if(e==null){
+                                            //alertDialog.dismiss();
                                             Toast.makeText(getApplicationContext(), "Sua imagem foi postada", Toast.LENGTH_LONG).show();
 
                                             //Atualizar o Fragment
@@ -299,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
                                             InicioFragment inicioFragment = (InicioFragment) tabAdapterNovo.getFragment(0);
                                             inicioFragment.atualizaPostagens();
                                         }else {
+                                            //alertDialog.dismiss();
                                             Log.e("Menu", "Error ao postar imagem(ParseObject), Coderro: " + e.getCode() + "/ Msg: " + e.getMessage());
                                             Toast.makeText(getApplicationContext(), "Erro ao postar a imagem! Tente novamente!", Toast.LENGTH_LONG).show();
                                         }

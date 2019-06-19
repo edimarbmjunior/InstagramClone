@@ -9,8 +9,9 @@ public class ParsesErrorUtil {
     public ParsesErrorUtil() {
         this.listaMsg = new HashMap();
         //Visualizar possiveis códigos no link "https://parseplatform.org/Parse-SDK-Android/api/constant-values.html"
-        this.listaMsg.put(202, "Usuário já existe! Escolha outro nome de usuário!");
+        this.listaMsg.put(101, "Usuário ou senha inválidos, preencha a novamente!");
         this.listaMsg.put(201, "Senha inválida, preencha a senha corretamente!");
+        this.listaMsg.put(202, "Usuário já existe! Escolha outro nome de usuário!");
     }
 
     public String getErroParse(Integer codErro){
