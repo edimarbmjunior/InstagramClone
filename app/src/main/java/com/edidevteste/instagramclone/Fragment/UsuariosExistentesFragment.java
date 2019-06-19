@@ -1,18 +1,22 @@
 package com.edidevteste.instagramclone.Fragment;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.edidevteste.instagramclone.Adapter.UsuariosExistentetesAdapter;
 import com.edidevteste.instagramclone.R;
+import com.edidevteste.instagramclone.Util.UtilContantes;
+import com.edidevteste.instagramclone.View.FeedUsuarioSelecionadoActivity;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -51,6 +55,8 @@ public class UsuariosExistentesFragment extends Fragment {
 
         recuperaUsuarios();
 
+        setlisterners();
+
         return view;
     }
 
@@ -71,6 +77,24 @@ public class UsuariosExistentesFragment extends Fragment {
                         mArrayListusers.add(parseUser);
                     }
                     arrayAdapterUsers.notifyDataSetChanged();
+                }
+            }
+        });
+    }
+
+    private void setlisterners(){
+        mListViewUsuaruisExistentes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(mArrayListusers.get(position)!=null){
+                    ParseUser parseUser = mArrayListusers.get(position);
+
+                    //Envia os dados para o feed do usuário
+                    Intent intent = new Intent(getActivity(), FeedUsuarioSelecionadoActivity.class);
+                    intent.putExtra(UtilContantes.PUT_EXTRA_FEED.getColuna1(), parseUser.getObjectId());
+                    intent.putExtra(UtilContantes.PUT_EXTRA_FEED.getColuna2(), parseUser.getUsername());
+
+                    startActivity(intent);
                 }
             }
         });

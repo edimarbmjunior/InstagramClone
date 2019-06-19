@@ -3,7 +3,8 @@ package com.edidevteste.instagramclone.Util;
 public enum UtilContantes {
 
     USUARIO_DADOS ("USUARIO_ID", "USUARIO_NOME", "USUARIO_EMAIL", "USUARIO_SENHA"),
-    SECURITY_PREFERENCES ("INSTAGRAMCLONEFUNCTIONAL");
+    SECURITY_PREFERENCES ("INSTAGRAMCLONEFUNCTIONAL"),
+    PUT_EXTRA_FEED ("USER_ID", "USER_NOME");
 
     private String coluna1;
     private String coluna2;
